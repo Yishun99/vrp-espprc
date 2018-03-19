@@ -8,7 +8,7 @@ Espprc::Espprc(int n, int start, int end, int step, int lt, int ut, int max_capa
 }
 
 double Espprc::reduced_cost(const std::vector<int>& path) {
-    if (!path.size()) return 0.0;
+    if (path.empty()) return 0.0;
     double total_cost = 0.0;
     for (int i = 0; i < path.size() - 1; i++) {
         int ix = G.get_edge(path[i], path[i + 1]);
@@ -25,7 +25,7 @@ double Espprc::capacity_consumption(const std::vector<int>& path) {
 }
 
 double Espprc::time_consumption(const std::vector<int>& path) {
-    if (!path.size()) return 0.0;
+    if (path.empty()) return 0.0;
     double total_time = 0.0;
     for (int i = 0; i < path.size() - 1; i++) {
         int ix = G.get_edge(path[i], path[i + 1]);
@@ -137,14 +137,14 @@ void Espprc::pulse_procedure(int root, int cur, double cost, double capacity, do
                 pulse_procedure(root, successor, nx_cost, nx_capacity, nx_time, new_path, flag);
                 G.node_list[successor].label = true;
             }
-            if (new_path.size() && new_path.back() == end && ((!opt_path.size()) || reduced_cost(new_path) < reduced_cost(opt_path))) {
+            if (!new_path.empty() && new_path.back() == end && ((opt_path.empty()) || reduced_cost(new_path) < reduced_cost(opt_path))) {
                 opt_path = new_path;
                 dynamic_update(cur, opt_path);
             }
         }
         if (path.back() != end) { path = opt_path; }
     }
-    if (path.size() && path.back() == end) {
+    if (!path.empty() && path.back() == end) {
         double tmp = reduced_cost(path);
         G.node_list[root].best_cost = std::min(G.node_list[root].best_cost, tmp);
         if (tmp < primal_bound) {
@@ -167,7 +167,7 @@ void Espprc::bounding_scheme() {
             std::vector<int> path;
             G.node_list[root].label = false;
             pulse_procedure(root, root, 0.0, 0.0, double(time_incumbent), path, false);
-            if (pre_path[root].size() && !path.size()) path = pre_path[root];
+            if (!pre_path[root].empty() && path.empty()) path = pre_path[root];
             lower_bound_matrix[bound_index][root] =\
                 Label(G.node_list[root].best_cost, time_consumption(path), capacity_consumption(path), path);
             pre_path[root] = path;
