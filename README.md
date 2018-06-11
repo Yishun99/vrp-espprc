@@ -22,4 +22,4 @@ or
 
 ## Run
 
-./espprc data/solomon_100/***.txt
+./vrp_espprc data/solomon_100/***.txt
