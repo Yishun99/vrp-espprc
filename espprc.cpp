@@ -87,32 +87,6 @@ bool Espprc::rollback(int cur, double cost, const std::vector<int>& path) {
     return true;
 }
 
-bool Espprc::intersection(const std::vector<int>& path1, const std::vector<int>& path2) {
-    std::vector<int> v1 = path1, v2 = path2;
-    std::sort(v1.begin(), v1.end());
-    std::sort(v2.begin(), v2.end());
-    std::vector<int> v_intersection;
-    std::set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), std::back_inserter(v_intersection));
-    if (v_intersection.empty())
-        return true;
-    return false;
-}
-
-bool Espprc::concat(int root, int cur, double time, double cost, double capacity, std::vector<int>& path, bool flag) {
-    int ix = int((upper_time - time) / step);
-    Label lb;
-    if (time >= time_incumbent + step) lb = lower_bound_matrix[ix][cur];
-    if (lb.vis && ix > 0 && capacity + lb.capacity_consumption <= max_capacity &&\
-            intersection(path, lb.path) && lb.best_cost == lower_bound_matrix[ix - 1][cur].best_cost) {
-        if (flag) primal_bound = cost + lb.best_cost;
-        else G.node_list[root].best_cost = cost + lb.best_cost;
-        path.insert(path.end(), lb.path.begin(), lb.path.end());
-        return true; // success concat
-    }
-    return false;
-}
-
-
 void Espprc::dynamic_update(int cur, const std::vector<int>& opt_path) {
     double path_cost = reduced_cost(std::vector<int>(std::find(opt_path.begin(), opt_path.end(), cur), opt_path.end()));
     if (path_cost < G.node_list[cur].best_cost)
@@ -123,27 +97,27 @@ void Espprc::pulse_procedure(int root, int cur, double cost, double capacity, do
     if (time < G.node_list[cur].twl) time = G.node_list[cur].twl;
     if (!is_feasible(cur, capacity, time) || !check_bounds(root, cur, time, cost, flag) || !rollback(cur, cost, path))
         return;
-    if (!concat(root, cur, time, cost, capacity, path, flag)) {
-        std::vector<int> opt_path;
-        path.push_back(cur);
-        double nx_cost = 0.0, nx_capacity = capacity + G.node_list[cur].demand, nx_time = 0.0;
-        for (int edge_ix : G.node_list[cur].outgoing_index) {
-            std::vector<int> new_path(path.begin(), path.end());
-            int successor = G.edge_list[edge_ix].to;
-            nx_cost = cost + G.edge_list[edge_ix].cost;
-            nx_time = std::max(double(G.node_list[successor].twl), time + G.node_list[cur].service_time + G.edge_list[edge_ix].time);
-            if (G.node_list[successor].label) {
-                G.node_list[successor].label = false;
-                pulse_procedure(root, successor, nx_cost, nx_capacity, nx_time, new_path, flag);
-                G.node_list[successor].label = true;
-            }
-            if (!new_path.empty() && new_path.back() == end && ((opt_path.empty()) || reduced_cost(new_path) < reduced_cost(opt_path))) {
-                opt_path = new_path;
-                dynamic_update(cur, opt_path);
-            }
+
+    std::vector<int> opt_path;
+    path.push_back(cur);
+    double nx_cost = 0.0, nx_capacity = capacity + G.node_list[cur].demand, nx_time = 0.0;
+    for (int edge_ix : G.node_list[cur].outgoing_index) {
+        std::vector<int> new_path(path.begin(), path.end());
+        int successor = G.edge_list[edge_ix].to;
+        nx_cost = cost + G.edge_list[edge_ix].cost;
+        nx_time = std::max(double(G.node_list[successor].twl), time + G.node_list[cur].service_time + G.edge_list[edge_ix].time);
+        if (G.node_list[successor].label) {
+            G.node_list[successor].label = false;
+            pulse_procedure(root, successor, nx_cost, nx_capacity, nx_time, new_path, flag);
+            G.node_list[successor].label = true;
         }
-        if (path.back() != end) { path = opt_path; }
+        if (!new_path.empty() && new_path.back() == end && ((opt_path.empty()) || reduced_cost(new_path) < reduced_cost(opt_path))) {
+            opt_path = new_path;
+            dynamic_update(cur, opt_path);
+        }
     }
+    if (path.back() != end) { path = opt_path; }
+
     if (!path.empty() && path.back() == end) {
         double tmp = reduced_cost(path);
         G.node_list[root].best_cost = std::min(G.node_list[root].best_cost, tmp);

@@ -28,7 +28,6 @@ void reader(std::vector< std::vector<int> >& data, std::string& filename, int& m
 
 int main(int args, char *argv[]) {
     std::string filename = argv[1];
-    //std::string filename = "data/solomon_100/C201.txt";
     int max_capacity;
     std::vector< std::vector<int> > data;
     reader(data, filename, max_capacity);
