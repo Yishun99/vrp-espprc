@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+#include <numeric>
 
 const int max_num = 0x3f3f3f3f;
 const double err = 1e-3;
