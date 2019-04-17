@@ -7,7 +7,7 @@ A sub-problem of Vehicle Route Problem.
 Backtracking + Branch and Bound
 
 ## Introduction
-An implementation of "An Exact Algorithm for the Elementary Shortest Path Problem with Resource Constraints".
+C++ implementation of "An Exact Algorithm for the Elementary Shortest Path Problem with Resource Constraints".
 
 
 
