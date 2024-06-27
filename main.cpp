@@ -16,6 +16,9 @@ void reader(std::vector< std::vector<int> >& data, std::string& filename, int& m
     }
     while (std::getline(infile, line)) {
         if (line.size() < 2) break;
+        if (line.empty() || std::all_of(line.begin(), line.end(), isspace)) {
+            break; // Exit the loop if an empty line is found
+        }
         std::istringstream iss(line);
         std::vector<int> tv;
         iss >> tmp;
